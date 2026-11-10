@@ -8,7 +8,8 @@
 - `push_frames(TimestampedFrame(...))`：仅缓存至多 `segment_frames` 个外部帧，然后调用官方 `encode_video`；多粒度 KV 路径保持不变。
 - `answer()` / `query()`：刷新最后一段后调用官方 `question_answering`。
 - `close_stream()`：返回报告并清理官方 cache。
-- `state_report()`：将状态分为 `persistent`、`static`、`temporary`，递归按 tensor storage/ndarray nbytes 计算真实字节；persistent 完整列出 CPU 历史 KV、representative vectors、token indices、compression stats、初始化 KV。
+- `persistent_state()` / `static_extra_state()` / `temporary_state()`：公开返回统一契约的三类原始状态对象；persistent 完整列出 CPU 历史 KV、representative vectors、token indices、compression stats、初始化 KV。
+- `state_report()`：复用上述三个方法，递归按 tensor storage/ndarray nbytes 计算 `persistent`、`static`、`temporary` 的真实字节。
 - 分阶段计时包括 ingest、encode、query、reset、close。
 
 `linear-growth` 模式报告累计 persistent bytes 与 bytes/frame，不声称内存有界。`fixed-budget` 模式要求显式 `fixed_budget_bytes`，报告是否越界；开启 `strict_budget` 时越界立即报错，但不会在适配层静默删除 MuKV 历史。预算档为 `12.5%`、`25%`、`50%`，是跨方法报告标签，不会暗改官方粒度或保留率。

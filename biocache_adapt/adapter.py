@@ -147,9 +147,10 @@ class MuKVBioCacheAdapter:
         self.stream_id = None
         return report
 
-    def _persistent_objects(self) -> dict[str, Any]:
+    def persistent_state(self) -> dict[str, Any]:
+        """返回随流累计、需纳入长期内存核算的状态对象。"""
         if self.model is None:
-            return {}
+            return {"external_timestamps": self._timestamps}
         store_obj = getattr(self.model, "multigran_kv_store", None)
         stores = getattr(store_obj, "kv_stores", {}) if store_obj is not None else {}
         # 包括 CPU 历史 KV、代表向量、token 索引和 compression_stats。
@@ -163,7 +164,8 @@ class MuKVBioCacheAdapter:
             "external_timestamps": self._timestamps,
         }
 
-    def _static_objects(self) -> dict[str, Any]:
+    def static_extra_state(self) -> dict[str, Any]:
+        """返回模型参数、processor、模型配置和适配器配置等静态状态。"""
         if self.model is None:
             return {"config": self.config}
         parameters = list(self.model.parameters()) if hasattr(self.model, "parameters") else []
@@ -174,11 +176,17 @@ class MuKVBioCacheAdapter:
             "adapter_config": self.config,
         }
 
+    def temporary_state(self) -> dict[str, Any]:
+        """返回当前段缓存与已观测到的临时峰值。"""
+        return {
+            "pending_external_frames": self._pending,
+            "observed_peak_bytes": self._temporary_peaks,
+        }
+
     def state_report(self) -> dict[str, Any]:
-        persistent = self._persistent_objects()
-        static = self._static_objects()
-        temporary = {"pending_external_frames": self._pending,
-                     "observed_peak_bytes": self._temporary_peaks}
+        persistent = self.persistent_state()
+        static = self.static_extra_state()
+        temporary = self.temporary_state()
         persistent_bytes = object_nbytes(persistent)
         cap = self.config.fixed_budget_bytes if self.config.report_mode == "fixed-budget" else None
         return {
