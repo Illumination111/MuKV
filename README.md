@@ -1,3 +1,5 @@
+> **BioCache fork:** [Qwen2.5-VL-7B streaming adapter](biocache_adapt/QWEN25_STREAMING.md), with CPU integration tests and memory accounting.
+
 # MuKV: Multi-Grained KV Cache Compression for Long Streaming Video Question-Answering
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

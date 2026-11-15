@@ -1,3 +1,5 @@
+> **Qwen2.5-VL adaptation (2026-11-15):** [native streaming entry, protocol, tests and porting changes](QWEN25_STREAMING.md). Earlier adapter interfaces are documented below.
+
 # MuKV BioCache streaming adapter
 
 该包是 MuKV 的独立在线评测适配层，不修改官方推理路径。调用方必须逐段提供已经解码并带时间戳的外部帧；适配器不接收视频路径、不打开视频，也不会预读完整视频。
